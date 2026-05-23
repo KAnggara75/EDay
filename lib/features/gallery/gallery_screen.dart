@@ -33,6 +33,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
       onComplete: () {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Sync completed!')));
+          Navigator.pop(context);
         }
       },
       onError: (error) {
