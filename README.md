@@ -1,4 +1,4 @@
-# eday_app
+# eday
 
 A new Flutter project.
 

@@ -1,24 +1,17 @@
-import 'dart:io' as io;
-import 'package:file/file.dart';
-import 'package:file/local.dart';
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'github_sync_service.dart';
-import 'gallery_service.dart';
-import 'full_screen_image.dart';
 
 class GalleryScreen extends StatefulWidget {
-  final FileSystem? fileSystem;
-  final GithubSyncService? syncService;
-  const GalleryScreen({super.key, this.fileSystem, this.syncService});
+  const GalleryScreen({super.key});
 
   @override
   State<GalleryScreen> createState() => _GalleryScreenState();
 }
 
 class _GalleryScreenState extends State<GalleryScreen> {
-  late final FileSystem _fileSystem;
-  late final GalleryService _galleryService;
   List<File> _images = [];
   bool _isLoading = true;
   bool _isSyncing = false;
@@ -28,16 +21,33 @@ class _GalleryScreenState extends State<GalleryScreen> {
   @override
   void initState() {
     super.initState();
-    _fileSystem = widget.fileSystem ?? const LocalFileSystem();
-    _galleryService = GalleryService(fileSystem: _fileSystem);
     _loadImages();
   }
 
   Future<void> _loadImages() async {
-    final images = await _galleryService.loadImages();
-    if (mounted) {
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+      final files = directory.listSync();
+
+      List<File> images = [];
+      for (var file in files) {
+        if (file.path.endsWith('.jpg')) {
+          images.add(File(file.path));
+        }
+      }
+
+      // Sort by modified date descending
+      images.sort(
+        (a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()),
+      );
+
       setState(() {
         _images = images;
+        _isLoading = false;
+      });
+    } catch (e) {
+      debugPrint('Error loading images: $e');
+      setState(() {
         _isLoading = false;
       });
     }
@@ -62,9 +72,11 @@ class _GalleryScreenState extends State<GalleryScreen> {
     final owner = dotenv.env['GITHUB_OWNER'] ?? 'KAnggara75';
     final repo = dotenv.env['GITHUB_REPO'] ?? 'everyday';
 
-    final syncService =
-        widget.syncService ??
-        GithubSyncService(token: token, owner: owner, repo: repo);
+    final syncService = GithubSyncService(
+      token: token,
+      owner: owner,
+      repo: repo,
+    );
     await syncService.syncFiles(_images, (current, total) {
       if (mounted) {
         setState(() {
@@ -79,9 +91,9 @@ class _GalleryScreenState extends State<GalleryScreen> {
         _isSyncing = false;
       });
       _loadImages(); // Refresh local list as files are deleted
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Sync completed!')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Sync completed!')),
+      );
     }
   }
 
@@ -129,13 +141,56 @@ class _GalleryScreenState extends State<GalleryScreen> {
                       ),
                     );
                   },
-                  child: Image.file(
-                    io.File(_images[index].path),
-                    fit: BoxFit.cover,
-                  ),
+                  child: Image.file(_images[index], fit: BoxFit.cover),
                 );
               },
             ),
+    );
+  }
+}
+
+class FullScreenImage extends StatefulWidget {
+  final List<File> images;
+  final int initialIndex;
+
+  const FullScreenImage({
+    super.key,
+    required this.images,
+    required this.initialIndex,
+  });
+
+  @override
+  State<FullScreenImage> createState() => _FullScreenImageState();
+}
+
+class _FullScreenImageState extends State<FullScreenImage> {
+  late PageController _pageController;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: widget.initialIndex);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: PageView.builder(
+        controller: _pageController,
+        itemCount: widget.images.length,
+        itemBuilder: (context, index) {
+          return Center(
+            child: InteractiveViewer(child: Image.file(widget.images[index])),
+          );
+        },
+      ),
     );
   }
 }

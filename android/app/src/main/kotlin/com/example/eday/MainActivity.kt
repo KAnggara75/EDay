@@ -1,4 +1,4 @@
-package com.example.eday_app
+package com.example.eday
 
 import io.flutter.embedding.android.FlutterActivity
 

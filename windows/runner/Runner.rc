@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "eday_app" "\0"
+            VALUE "FileDescription", "eday" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "eday_app" "\0"
+            VALUE "InternalName", "eday" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2026 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "eday_app.exe" "\0"
-            VALUE "ProductName", "eday_app" "\0"
+            VALUE "OriginalFilename", "eday.exe" "\0"
+            VALUE "ProductName", "eday" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END
