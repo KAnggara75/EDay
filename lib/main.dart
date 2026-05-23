@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'camera_screen.dart';
+import 'features/camera/camera_screen.dart';
 
 List<CameraDescription> cameras = [];
 
@@ -13,9 +13,7 @@ Future<void> main() async {
   } catch (e) {
     debugPrint("Failed to load .env: $e");
   }
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.landscapeRight,
-  ]);
+  await SystemChrome.setPreferredOrientations([DeviceOrientation.landscapeRight]);
   try {
     cameras = await availableCameras();
   } catch (e) {
@@ -32,9 +30,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Everyday',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
+      theme: ThemeData(colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple)),
       home: CameraScreen(cameras: cameras),
     );
   }
