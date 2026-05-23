@@ -10,23 +10,14 @@ class GithubSyncService {
   final String repo;
   final String token;
 
-  GithubSyncService({
-    required this.token,
-    this.owner = 'KAnggara75',
-    this.repo = 'everyday',
-  });
+  GithubSyncService({required this.token, this.owner = 'KAnggara75', this.repo = 'everyday'});
 
-  Future<void> syncFiles(
-    List<File> localFiles,
-    Function(int, int) onProgress,
-  ) async {
+  Future<void> syncFiles(List<File> localFiles, Function(int, int) onProgress) async {
     int total = localFiles.length;
     int current = 0;
 
     // Sort local files by modified date ascending (oldest to newest)
-    localFiles.sort(
-      (a, b) => a.lastModifiedSync().compareTo(b.lastModifiedSync()),
-    );
+    localFiles.sort((a, b) => a.lastModifiedSync().compareTo(b.lastModifiedSync()));
 
     for (var file in localFiles) {
       if (!file.path.endsWith('.jpg')) continue;
@@ -58,23 +49,14 @@ class GithubSyncService {
     }
   }
 
-  Future<bool> _uploadFileWithBytes(
-    Uint8List bytes,
-    String targetPath, {
-    bool forceOverwrite = false,
-  }) async {
-    final url = Uri.parse(
-      'https://api.github.com/repos/$owner/$repo/contents/$targetPath',
-    );
+  Future<bool> _uploadFileWithBytes(Uint8List bytes, String targetPath, {bool forceOverwrite = false}) async {
+    final url = Uri.parse('https://api.github.com/repos/$owner/$repo/contents/$targetPath');
 
     String? sha;
 
     final checkRes = await http.get(
       url,
-      headers: {
-        'Authorization': 'token $token',
-        'Accept': 'application/vnd.github.v3+json',
-      },
+      headers: {'Authorization': 'token $token', 'Accept': 'application/vnd.github.v3+json'},
     );
 
     if (checkRes.statusCode == 200) {
@@ -91,10 +73,7 @@ class GithubSyncService {
     final timestamp =
         '${DateFormat('E MMM d HH:mm:ss', 'en_US').format(now)} WIB ${DateFormat('yyyy', 'en_US').format(now)}';
 
-    final body = {
-      'message': 'Updated: $timestamp [APP]',
-      'content': base64Content,
-    };
+    final body = {'message': 'Updated: $timestamp [APP]', 'content': base64Content};
 
     if (sha != null) {
       body['sha'] = sha;
